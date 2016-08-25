@@ -11,11 +11,10 @@ export
     DeterminantalPointProcess,
 
     # mehtods
-    logpmf,             # log probability mass
-    logpmf!,            # evaluate log pmf to provided storage
-    pmf,                # probability mass function (DiscreteDistribution)
-    # sampler,            # create a Sampler object for efficient samples
-    rand
+    logpmf,             # log probability mass function
+    pmf,                # probability mass function
+    rand,               # generate samples
+    randmcmc            # generate samples using MCMC
 
 
 ### source files
