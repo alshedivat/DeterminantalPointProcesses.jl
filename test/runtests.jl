@@ -53,7 +53,7 @@ facts("Ensure correct sampling from DPP") do
     subset_to_idx = Dict(all_subsets)
 
     context("Exact sampling") do
-        nb_samples = 10000
+        nb_samples = 1000
         samples = rand(dpp, nb_samples)
 
         # compute the empirical distribution
@@ -65,11 +65,27 @@ facts("Ensure correct sampling from DPP") do
 
         # ensure that the empirical pmf is close to the true pmf
         total_variation = maximum(abs(true_pmf - empirical_pmf))
-        @fact total_variation --> roughly(0; atol=1e-1)
+        @fact total_variation --> roughly(0.0; atol=1e-1)
     end
 
     context("MCMC sampling") do
-        # TODO
+        nb_samples = 1000
+        samples, state = randmcmc(dpp, nb_samples, return_final_state=true)
+
+        # ensure that L_z_inv makes sense (i.e., noise did not accumulate)
+        z, L_z_inv = state
+        @fact L_z_inv[z, z] * dpp.L[z, z] --> roughly(eye(sum(z)))
+
+        # compute the empirical distribution
+        empirical_pmf = zeros(Float64, length(true_pmf))
+        for z in samples
+            empirical_pmf[subset_to_idx[z]] += 1
+        end
+        empirical_pmf ./= nb_samples
+
+        # ensure that the empirical pmf is close to the true pmf
+        total_variation = maximum(abs(true_pmf - empirical_pmf))
+        @fact total_variation --> roughly(0.0; atol=1e-1)
     end
 end
 
@@ -101,7 +117,7 @@ facts("Ensure correct sampling from k-DPP") do
 
         # ensure that the empirical pmf is close to the true pmf
         total_variation = maximum(abs(true_pmf - empirical_pmf))
-        @fact total_variation --> roughly(0; atol=1e-1)
+        @fact total_variation --> roughly(0.0; atol=1e-1)
     end
 
     context("MCMC sampling") do

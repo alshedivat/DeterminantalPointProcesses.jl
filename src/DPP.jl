@@ -2,9 +2,8 @@ __precompile__(true)
 
 module DPP
 
-import Base.Random
 import Base.LinAlg: Eigen, Symmetric
-import Distributions: Multinomial, rand
+import Base.Random: rand
 
 export
     # point process types
