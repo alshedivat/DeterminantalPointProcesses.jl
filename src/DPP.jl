@@ -1,3 +1,10 @@
+######################################################################
+# DPP.jl
+# Determinantal Point Processes in Julia
+# http://github.com/alshedivat/DPP.jl
+# MIT Licensed
+######################################################################
+
 __precompile__(true)
 
 module DPP
@@ -18,8 +25,15 @@ export
 
 ### source files
 
+# types
 include("types.jl")
-include("methods.jl")
+
+# methods
+include("fit.jl")
+include("prob.jl")
+include("rand.jl")
+
+# utilities
 include("utils.jl")
 
 end # module

@@ -1,5 +1,12 @@
 """
-Determinantal Point Processes.
+Sampling from DPP and k-DPP.
+
+Methods:
+--------
+    rand(dpp::DeterminantalPointProcess, N::Int)
+    randmcmc(dpp::DeterminantalPointProcess, N::Int)
+    rand(dpp::DeterminantalPointProcess, N::Int, k::Int)
+    randmcmc(dpp::DeterminantalPointProcess, N::Int, k::Int)
 
 References:
 -----------
@@ -8,36 +15,6 @@ References:
     [2] Kang, B. Fast determinantal point process sampling with application to
         clustering. NIPS, 2013.
 """
-
-
-function logpmf(dpp::DeterminantalPointProcess, z::Array{Int})
-    """Compute the log probability of a sample `z` under the given DPP.
-    """
-    L_z_eigvals = Base.LinAlg.eigvals(dpp.L[z, z])
-    sum(log(L_z_eigvals)) - sum(log(dpp.Lfact.values + 1))
-end
-
-
-function logpmf(dpp::DeterminantalPointProcess, z::Array{Int}, k::Int)
-    """Compute the log probability of a sample `z` under the given k-DPP.
-    """
-    L_z_eigvals = Base.LinAlg.eigvals(dpp.L[z, z])
-    sum(log(L_z_eigvals)) - log(elem_symm_poly(dpp.Lfact.values, k)[end, end])
-end
-
-
-function pmf(dpp::DeterminantalPointProcess, z::Array{Int})
-    """Compute the probability of a sample `z` under the given DPP.
-    """
-    exp(logpmf(dpp, z))
-end
-
-
-function pmf(dpp::DeterminantalPointProcess, z::Array{Int}, k::Int)
-    """Compute the probability of a sample `z` under the given DPP.
-    """
-    exp(logpmf(dpp, z, k))
-end
 
 
 function _sample_mask(Λ::SharedArray{Float64},
