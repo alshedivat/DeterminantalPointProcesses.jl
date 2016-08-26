@@ -25,3 +25,10 @@ function elem_symm_poly(Λ::Array{Float64}, k::Int)
     end
     poly
 end
+
+
+function samplepair(rng::AbstractRNG, n::Int)
+    i1 = rand(rng, 1:n)
+    i2 = rand(rng, 1:n-1)
+    (i1, i2 == i1 ? n : i2)
+end

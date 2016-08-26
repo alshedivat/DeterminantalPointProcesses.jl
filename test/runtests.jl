@@ -121,6 +121,25 @@ facts("Ensure correct sampling from k-DPP") do
     end
 
     context("MCMC sampling") do
-        # TODO
+        nb_samples = 1000
+        samples, state = randmcmc(dpp, nb_samples, k, return_final_state=true)
+
+        # ensure that L_z_inv makes sense (i.e., noise did not accumulate)
+        z, L_z_inv = state
+        @fact L_z_inv[z, z] * dpp.L[z, z] --> roughly(eye(sum(z)))
+
+        # ensure that samples are of proper cardinality
+        @fact all(map(length, samples) .== k) --> true
+
+        # compute the empirical distribution
+        empirical_pmf = zeros(Float64, length(true_pmf))
+        for z in samples
+            empirical_pmf[k_subset_to_idx[z]] += 1
+        end
+        empirical_pmf ./= nb_samples
+
+        # ensure that the empirical pmf is close to the true pmf
+        total_variation = maximum(abs(true_pmf - empirical_pmf))
+        @fact total_variation --> roughly(0.0; atol=1e-1)
     end
 end

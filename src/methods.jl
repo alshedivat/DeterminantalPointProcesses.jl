@@ -182,7 +182,7 @@ end
 
 
 function _do_mcmc_step!(dpp::DeterminantalPointProcess, state::MCMCState)
-    """Perform one MCMC accept-reject transition.
+    """Perform one MCMC accept-reject transition for DPP.
     """
     # propose an element to swap
     u = rand(dpp.rng, 1:dpp.size)
@@ -203,6 +203,28 @@ function _do_mcmc_step!(dpp::DeterminantalPointProcess, state::MCMCState)
 end
 
 
+function _do_mcmc_k_step!(dpp::DeterminantalPointProcess, state::MCMCState)
+    """Perform one MCMC accept-reject transition for k-DPP.
+    """
+    z, L_z_inv = state
+
+    # propose the elements to swap
+    u, v = rand(find(z)), rand(find(!z))
+
+    # copy the state and delete the u element
+    new_state = _update_mcmc_state(dpp, state, u, false)
+
+    # attempt to make a transition
+    p = _comp_accept_prob(dpp, new_state, u, v)
+    if rand(dpp.rng) < p
+        # insert the v element into the new state
+        _update_mcmc_state!(dpp, new_state, v, true)
+        copy!(state[1], new_state[1])
+        copy!(state[2], new_state[2])
+    end
+end
+
+
 function _comp_accept_prob(dpp::DeterminantalPointProcess, state::MCMCState,
                            u::Int, insert::Bool)
     """Compute accept probability to insert / delete u from the state.
@@ -219,9 +241,26 @@ function _comp_accept_prob(dpp::DeterminantalPointProcess, state::MCMCState,
 end
 
 
+function _comp_accept_prob(dpp::DeterminantalPointProcess, state::MCMCState,
+                           u::Int, v::Int)
+    """Compute accept probability to swap u and v.
+    """
+    z, L_z_inv = state
+
+    d_u, d_v = dpp.L[u, u], dpp.L[v, v]
+    if any(z)
+        b_u, b_v = dpp.L[z, u], dpp.L[z, v]
+        d_u -= dot(b_u, L_z_inv[z, z] * b_u)
+        d_v -= dot(b_v, L_z_inv[z, z] * b_v)
+    end
+
+    min(1.0, d_v / d_u)
+end
+
+
 function _update_mcmc_state!(dpp::DeterminantalPointProcess, state::MCMCState,
                              u::Int, insert::Bool)
-    """Compute Sherman-Morrison-Woodbury update for L_z_inv after transition.
+    """Update the state after u is inserted / deleted.
     """
     z, L_z_inv = state
 
@@ -251,7 +290,7 @@ end
 
 function _update_mcmc_state(dpp::DeterminantalPointProcess, state::MCMCState,
                             u::Int, insert::Bool)
-    """Compute Sherman-Morrison-Woodbury update for L_z_inv after transition.
+    """Update the state after u is inserted / deleted.
     """
     new_state = deepcopy(state)
     _update_mcmc_state!(dpp, new_state, u, insert)
@@ -301,13 +340,45 @@ function randmcmc(dpp::DeterminantalPointProcess, N::Int;
 end
 
 
-function randmcmc(dpp::DeterminantalPointProcess, N::Int, k::Int,
+function randmcmc(dpp::DeterminantalPointProcess, N::Int, k::Int;
                   init_state=nothing,
                   return_final_state::Bool=false,
-                  mixing_steps::Int=ceil(Int, dpp.size*log(dpp.size/mix_eps)),
+                  mixing_steps::Int=ceil(Int, k*log(k / mix_eps)),
                   steps_between_samples::Int=mixing_steps,
                   mix_eps::Float64=1e-1)
     """MCMC sampling from a k-DPP [2].
+
+    TODO: Add support for running MCMC in parallel, similar as rand.
+          Make sure parallelization produces unbiased and consistent samples.
     """
-    # TODO
+    # initialize the Markov chain
+    state = init_state
+    if state == nothing
+        L_z_inv = Array{Float64}(size(dpp.L))
+        z = BitArray(dpp.size)  # TODO: improve initialization (?)
+        z[1:k] = true
+        if any(z)
+            L_z_inv[z, z] = pinv(dpp.L[z, z])
+        end
+        state = (z, L_z_inv)
+    end
+
+    # sanity check
+    @assert typeof(state) == MCMCState
+    @assert sum(state[1]) == k
+
+    # mix the Markov chain
+    for t in 1:mixing_steps
+        _do_mcmc_k_step!(dpp, state)
+    end
+
+    Y = []
+    for i in 1:N
+        push!(Y, find(state[1]))
+        for t in 1:steps_between_samples
+            _do_mcmc_k_step!(dpp, state)
+        end
+    end
+
+    return_final_state ? (Y, state) : Y
 end
