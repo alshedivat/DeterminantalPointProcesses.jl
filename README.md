@@ -1,5 +1,8 @@
 # DPP
 
+[![Build Status](https://travis-ci.org/alshedivat/DPP.jl.svg)](https://travis-ci.org/alshedivat/DPP.jl)
+[![Coverage Status](https://coveralls.io/repos/github/alshedivat/DPP.jl/badge.svg)](https://coveralls.io/github/alshedivat/DPP.jl)
+
 An efficient implementation of Determinantal Point Processes in Julia.
 
 ### Current features
