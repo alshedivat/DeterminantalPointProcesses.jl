@@ -2,6 +2,7 @@ using DPP
 using FactCheck
 
 import Iterators: subsets
+import Combinatorics: combinations
 
 
 rng = MersenneTwister(42)
