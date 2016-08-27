@@ -11,6 +11,6 @@ notifications:
 # uncomment the following lines to override the default test script
 #script:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-#  - julia -e 'Pkg.clone(pwd()); Pkg.build("DPP"); Pkg.test("DPP"; coverage=true)'
+#  - julia -e 'Pkg.clone(pwd()); Pkg.build("DeterminantalPointProcesses"); Pkg.test("DeterminantalPointProcesses"; coverage=true)'
 after_success:
-- julia -e 'cd(Pkg.dir("DPP")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
+- julia -e 'cd(Pkg.dir("DeterminantalPointProcesses")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'

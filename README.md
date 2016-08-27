@@ -1,9 +1,9 @@
-# DPP
+# DeterminantalPointProcesses
 
-[![Build Status](https://travis-ci.org/alshedivat/DPP.jl.svg)](https://travis-ci.org/alshedivat/DPP.jl)
-[![Coverage Status](https://coveralls.io/repos/github/alshedivat/DPP.jl/badge.svg)](https://coveralls.io/github/alshedivat/DPP.jl)
+[![Build Status](https://travis-ci.org/alshedivat/DeterminantalPointProcesses.jl.svg)](https://travis-ci.org/alshedivat/DeterminantalPointProcesses.jl)
+[![Coverage Status](https://coveralls.io/repos/github/alshedivat/DeterminantalPointProcesses.jl/badge.svg)](https://coveralls.io/github/alshedivat/DeterminantalPointProcesses.jl)
 
-An efficient implementation of Determinantal Point Processes in Julia.
+An efficient implementation of Determinantal Point Processes (DPP) in Julia.
 
 ### Current features
 - Exact sampling [1] from DPP and k-DPP (can be executed in parallel).

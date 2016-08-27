@@ -27,4 +27,6 @@ end
 
 
 # aliases
+typealias DPP DeterminantalPointProcess
+typealias KDPP KroneckerDeterminantalPointProcess
 typealias MCMCState Tuple{BitArray{1}, Array{Float64, 2}}

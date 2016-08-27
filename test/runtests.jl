@@ -1,4 +1,4 @@
-using DPP
+using DeterminantalPointProcesses
 using FactCheck
 
 import Iterators: subsets
@@ -11,7 +11,7 @@ n = 5
 k = 2
 A = rand(rng, n, n)
 L = Symmetric(A * A')
-dpp = DeterminantalPointProcess(L)
+dpp = DPP(L)
 
 
 facts("Ensure correct pmf and logpmf computation") do

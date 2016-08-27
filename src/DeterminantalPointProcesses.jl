@@ -1,20 +1,20 @@
 ######################################################################
-# DPP.jl
+# DeterminantalPointProcesses.jl
 # Determinantal Point Processes in Julia
-# http://github.com/alshedivat/DPP.jl
+# http://github.com/alshedivat/DeterminantalPointProcesses.jl
 # MIT Licensed
 ######################################################################
 
 __precompile__(true)
 
-module DPP
+module DeterminantalPointProcesses
 
 import Base.LinAlg: Eigen, Symmetric
 import Base.Random: rand
 
 export
-    # point process types
-    DeterminantalPointProcess,
+    # point process types and aliases
+    DeterminantalPointProcess, DPP,
 
     # mehtods
     logpmf,             # log probability mass function
