@@ -16,12 +16,11 @@ References:
         clustering. NIPS, 2013.
 """
 
-
+"""Sample a mask for an elementary DPP.
+"""
 function _sample_mask(Λ::SharedArray{Float64},
                       M::SharedMatrix{Bool},
                       i::Int, seed::Int)
-    """Sample a mask for an elementary DPP.
-    """
     rng = MersenneTwister(seed)
 
     for j in 1:length(Λ)
@@ -29,13 +28,12 @@ function _sample_mask(Λ::SharedArray{Float64},
     end
 end
 
-
+"""Sample a mask for an elementary k-DPP.
+"""
 function _sample_k_mask(Λ::SharedArray{Float64},
                         M::SharedMatrix{Bool},
                         E::SharedMatrix{Float64},
                         k::Int, i::Int, seed::Int)
-    """Sample a mask for an elementary k-DPP.
-    """
     rng = MersenneTwister(seed)
 
     j = length(Λ)
@@ -59,12 +57,11 @@ function _sample_k_mask(Λ::SharedArray{Float64},
       end
 end
 
-
+"""Exact sampling from an elementary DPP. The algorithm based on [1].
+"""
 function _sample_from_elementary(V::SharedMatrix,
                                  M::SharedMatrix{Bool},
                                  i::Int, seed::Int)
-    """Exact sampling from an elementary DPP. The algorithm based on [1].
-    """
     rng = MersenneTwister(seed)
 
     # select the elementary DPP
@@ -120,10 +117,9 @@ function _sample_from_elementary(V::SharedMatrix,
     sort(Y)
 end
 
-
+"""Exact sampling from a DPP [1].
+"""
 function Base.rand(dpp::DeterminantalPointProcess, N::Int)
-    """Exact sampling from a DPP [1].
-    """
     Λ = SharedArray{Float64}(dpp.Lfact.values)
     V = SharedMatrix{Float64}(dpp.Lfact.vectors)
     M = SharedMatrix{Bool}(zeros(Bool, dpp.size, N))
@@ -137,10 +133,9 @@ function Base.rand(dpp::DeterminantalPointProcess, N::Int)
          1:N, abs.(rand(dpp.rng, Int, N)))
 end
 
-
+"""Exact sampling from a k-DPP [1].
+"""
 function Base.rand(dpp::DeterminantalPointProcess, N::Int, k::Int)
-    """Exact sampling from a k-DPP [1].
-    """
     Λ = SharedArray{Float64}(dpp.Lfact.values)
     V = SharedMatrix{Float64}(dpp.Lfact.vectors)
     M = SharedMatrix{Bool}(zeros(Bool, dpp.size, N))
@@ -157,10 +152,9 @@ function Base.rand(dpp::DeterminantalPointProcess, N::Int, k::Int)
          1:N, abs.(rand(dpp.rng, Int, N)))
 end
 
-
+"""Perform one MCMC accept-reject transition for DPP.
+"""
 function _do_mcmc_step!(dpp::DeterminantalPointProcess, state::MCMCState)
-    """Perform one MCMC accept-reject transition for DPP.
-    """
     # propose an element to swap
     u = rand(dpp.rng, 1:dpp.size)
     insert = !state[1][u]
@@ -179,10 +173,9 @@ function _do_mcmc_step!(dpp::DeterminantalPointProcess, state::MCMCState)
     end
 end
 
-
+"""Perform one MCMC accept-reject transition for k-DPP.
+"""
 function _do_mcmc_k_step!(dpp::DeterminantalPointProcess, state::MCMCState)
-    """Perform one MCMC accept-reject transition for k-DPP.
-    """
     z, L_z_inv = state
 
     # propose the elements to swap
