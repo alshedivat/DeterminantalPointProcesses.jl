@@ -9,8 +9,11 @@ __precompile__(true)
 
 module DeterminantalPointProcesses
 
-import Base.LinAlg: Eigen, Symmetric
-import Base.Random: rand
+using LinearAlgebra
+using Random: rand, bitrand, AbstractRNG, MersenneTwister
+using SharedArrays
+using Distributed
+import Base: rand
 
 export
     # point process types and aliases

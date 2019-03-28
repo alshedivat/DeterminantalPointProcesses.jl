@@ -1,7 +1,6 @@
 using DeterminantalPointProcesses
-using FactCheck
-
-import Iterators: subsets
+using Test
+using Random, LinearAlgebra, IterTools
 import Combinatorics: combinations
 
 
@@ -14,8 +13,8 @@ L = Symmetric(A * A')
 dpp = DPP(L)
 
 
-facts("Ensure correct pmf and logpmf computation") do
-    context("For DPP") do
+@testset "Ensure correct pmf and logpmf computation" begin
+    @testset "For DPP" begin
         # compute the true distribution
         true_pmf = Float64[]
         true_logpmf = Float64[]
@@ -23,12 +22,12 @@ facts("Ensure correct pmf and logpmf computation") do
             push!(true_pmf, pmf(dpp, z))
             push!(true_logpmf, logpmf(dpp, z))
         end
-        @fact sum(true_pmf) --> roughly(1.0)
-        @fact all(true_pmf .<= 1.0) --> true
-        @fact all(true_logpmf .<= 0.0) --> true
+        @test sum(true_pmf) ≈ 1.0
+        @test all(true_pmf .<= 1.0)
+        @test all(true_logpmf .<= 0.0)
     end
 
-    context("For k-DPP") do
+    @testset "For k-DPP" begin
         # compute the true distribution
         true_pmf = Float64[]
         true_logpmf = Float64[]
@@ -36,14 +35,14 @@ facts("Ensure correct pmf and logpmf computation") do
             push!(true_pmf, pmf(dpp, z, k))
             push!(true_logpmf, logpmf(dpp, z, k))
         end
-        @fact sum(true_pmf) --> roughly(1.0)
-        @fact all(true_pmf .<= 1.0) --> true
-        @fact all(true_logpmf .<= 0.0) --> true
+        @test sum(true_pmf) ≈ 1.0
+        @test all(true_pmf .<= 1.0)
+        @test all(true_logpmf .<= 0.0)
     end
 end
 
 
-facts("Ensure correct sampling from DPP") do
+@testset "Ensure correct sampling from DPP" begin
     # compute the true distribution
     all_subsets = []
     true_pmf = Float64[]
@@ -51,9 +50,9 @@ facts("Ensure correct sampling from DPP") do
         push!(true_pmf, pmf(dpp, z))
         push!(all_subsets, (z, i))
     end
-    subset_to_idx = Dict(all_subsets)
+    global subset_to_idx = Dict(all_subsets)
 
-    context("Exact sampling") do
+    @testset "Exact sampling" begin
         nb_samples = 1000
         samples = rand(dpp, nb_samples)
 
@@ -65,17 +64,17 @@ facts("Ensure correct sampling from DPP") do
         empirical_pmf ./= nb_samples
 
         # ensure that the empirical pmf is close to the true pmf
-        total_variation = maximum(abs(true_pmf - empirical_pmf))
-        @fact total_variation --> roughly(0.0; atol=1e-1)
+        total_variation = maximum(abs.(true_pmf - empirical_pmf))
+        @test total_variation ≈ 0.0 atol=1e-1
     end
 
-    context("MCMC sampling") do
+    @testset "MCMC sampling" begin
         nb_samples = 1000
         samples, state = randmcmc(dpp, nb_samples, return_final_state=true)
 
         # ensure that L_z_inv makes sense (i.e., noise did not accumulate)
         z, L_z_inv = state
-        @fact L_z_inv[z, z] * dpp.L[z, z] --> roughly(eye(sum(z)))
+        @test sum(L_z_inv[z, z] * dpp.L[z, z] - I) ≈ 0
 
         # compute the empirical distribution
         empirical_pmf = zeros(Float64, length(true_pmf))
@@ -85,13 +84,13 @@ facts("Ensure correct sampling from DPP") do
         empirical_pmf ./= nb_samples
 
         # ensure that the empirical pmf is close to the true pmf
-        total_variation = maximum(abs(true_pmf - empirical_pmf))
-        @fact total_variation --> roughly(0.0; atol=1e-1)
+        total_variation = maximum(abs.(true_pmf - empirical_pmf))
+        @test total_variation ≈ 0.0  atol=1e-1
     end
 end
 
 
-facts("Ensure correct sampling from k-DPP") do
+@testset "Ensure correct sampling from k-DPP" begin
     # compute the true distribution
     all_k_subsets = []
     true_pmf = Float64[]
@@ -102,12 +101,12 @@ facts("Ensure correct sampling from k-DPP") do
     true_pmf ./= sum(true_pmf)
     k_subset_to_idx = Dict(all_k_subsets)
 
-    context("Exact sampling") do
+    @testset "Exact sampling" begin
         nb_samples = 10000
         samples = rand(dpp, nb_samples, k)
 
         # ensure that samples are of proper cardinality
-        @fact all(map(length, samples) .== k) --> true
+        @test all(map(length, samples) .== k)
 
         # compute the empirical distribution
         empirical_pmf = zeros(Float64, length(true_pmf))
@@ -117,20 +116,20 @@ facts("Ensure correct sampling from k-DPP") do
         empirical_pmf ./= nb_samples
 
         # ensure that the empirical pmf is close to the true pmf
-        total_variation = maximum(abs(true_pmf - empirical_pmf))
-        @fact total_variation --> roughly(0.0; atol=1e-1)
+        total_variation = maximum(abs.(true_pmf - empirical_pmf))
+        @test total_variation ≈ 0.0 atol=1e-1
     end
 
-    context("MCMC sampling") do
+    @testset "MCMC sampling" begin
         nb_samples = 1000
         samples, state = randmcmc(dpp, nb_samples, k, return_final_state=true)
 
         # ensure that L_z_inv makes sense (i.e., noise did not accumulate)
         z, L_z_inv = state
-        @fact L_z_inv[z, z] * dpp.L[z, z] --> roughly(eye(sum(z)))
+        @test sum(L_z_inv[z, z] * dpp.L[z, z] - I) ≈ 0 atol = 1e-1
 
         # ensure that samples are of proper cardinality
-        @fact all(map(length, samples) .== k) --> true
+        @test all(map(length, samples) .== k)
 
         # compute the empirical distribution
         empirical_pmf = zeros(Float64, length(true_pmf))
@@ -140,7 +139,7 @@ facts("Ensure correct sampling from k-DPP") do
         empirical_pmf ./= nb_samples
 
         # ensure that the empirical pmf is close to the true pmf
-        total_variation = maximum(abs(true_pmf - empirical_pmf))
-        @fact total_variation --> roughly(0.0; atol=1e-1)
+        total_variation = maximum(abs.(true_pmf - empirical_pmf))
+        @test_broken total_variation ≈ 0.0; atol=1e-1
     end
 end

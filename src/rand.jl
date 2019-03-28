@@ -80,7 +80,7 @@ function _sample_from_elementary(V::SharedMatrix,
 
     Y = Int[]
     mask = ones(Bool, size(L, 2))
-    prob = Array{Float64}(size(L, 1))
+    prob = Array{Float64}(undef,size(L, 1))
 
     for i in 1:size(L, 2)
         # compute probabilities
@@ -113,7 +113,7 @@ function _sample_from_elementary(V::SharedMatrix,
             end
 
             # Gram-Schmidt orthogonalization
-            L[:, mask] = qr(L[:, mask])[1]
+            L[:, mask] = Matrix(qr(L[:, mask]).Q)
         end
     end
 
@@ -121,7 +121,7 @@ function _sample_from_elementary(V::SharedMatrix,
 end
 
 
-function rand(dpp::DeterminantalPointProcess, N::Int)
+function Base.rand(dpp::DeterminantalPointProcess, N::Int)
     """Exact sampling from a DPP [1].
     """
     Λ = SharedArray{Float64}(dpp.Lfact.values)
@@ -130,15 +130,15 @@ function rand(dpp::DeterminantalPointProcess, N::Int)
 
     # step I: sample masks for elementary DPPs
     pmap((i, seed) -> _sample_mask(Λ, M, i, seed),
-         1:N, abs(rand(dpp.rng, Int, N)))
+         1:N, abs.(rand(dpp.rng, Int, N)))
 
     # step II: iteratively sample from a mixture of elementary DPPs
     pmap((i, seed) -> _sample_from_elementary(V, M, i, seed),
-         1:N, abs(rand(dpp.rng, Int, N)))
+         1:N, abs.(rand(dpp.rng, Int, N)))
 end
 
 
-function rand(dpp::DeterminantalPointProcess, N::Int, k::Int)
+function Base.rand(dpp::DeterminantalPointProcess, N::Int, k::Int)
     """Exact sampling from a k-DPP [1].
     """
     Λ = SharedArray{Float64}(dpp.Lfact.values)
@@ -150,11 +150,11 @@ function rand(dpp::DeterminantalPointProcess, N::Int, k::Int)
 
     # step I: sample masks for elementary DPPs
     pmap((i, seed) -> _sample_k_mask(Λ, M, E, k, i, seed),
-         1:N, abs(rand(dpp.rng, Int, N)))
+         1:N, abs.(rand(dpp.rng, Int, N)))
 
     # step II: iteratively sample from a mixture of elementary DPPs
     pmap((i, seed) -> _sample_from_elementary(V, M, i, seed),
-         1:N, abs(rand(dpp.rng, Int, N)))
+         1:N, abs.(rand(dpp.rng, Int, N)))
 end
 
 
@@ -186,7 +186,7 @@ function _do_mcmc_k_step!(dpp::DeterminantalPointProcess, state::MCMCState)
     z, L_z_inv = state
 
     # propose the elements to swap
-    u, v = rand(find(z)), rand(find(!z))
+    u, v = rand(findall(z)), rand(findall(z.==true))
 
     # copy the state and delete the u element
     new_state = _update_mcmc_state(dpp, state, u, false)
@@ -278,9 +278,9 @@ end
 function randmcmc(dpp::DeterminantalPointProcess, N::Int;
                   init_state=nothing,
                   return_final_state::Bool=false,
+                  mix_eps::Float64=1e-1,
                   mixing_steps::Int=ceil(Int, dpp.size*log(dpp.size/mix_eps)),
-                  steps_between_samples::Int=mixing_steps,
-                  mix_eps::Float64=1e-1)
+                  steps_between_samples::Int=mixing_steps)
     """MCMC sampling from a DPP [2].
 
     TODO: Add support for running MCMC in parallel, similar as rand.
@@ -289,7 +289,7 @@ function randmcmc(dpp::DeterminantalPointProcess, N::Int;
     # initialize the Markov chain
     state = init_state
     if state == nothing
-        L_z_inv = Array{Float64}(size(dpp.L))
+        L_z_inv = Array{Float64}(undef,size(dpp.L))
         z = bitrand(dpp.rng, dpp.size)  # TODO: improve initialization (?)
         if any(z)
             L_z_inv[z, z] = pinv(dpp.L[z, z])
@@ -307,7 +307,7 @@ function randmcmc(dpp::DeterminantalPointProcess, N::Int;
 
     Y = []
     for i in 1:N
-        push!(Y, find(state[1]))
+        push!(Y, findall(state[1]))
         for t in 1:steps_between_samples
             _do_mcmc_step!(dpp, state)
         end
@@ -320,9 +320,9 @@ end
 function randmcmc(dpp::DeterminantalPointProcess, N::Int, k::Int;
                   init_state=nothing,
                   return_final_state::Bool=false,
+                  mix_eps::Float64=1e-1,
                   mixing_steps::Int=ceil(Int, k*log(k / mix_eps)),
-                  steps_between_samples::Int=mixing_steps,
-                  mix_eps::Float64=1e-1)
+                  steps_between_samples::Int=mixing_steps)
     """MCMC sampling from a k-DPP [2].
 
     TODO: Add support for running MCMC in parallel, similar as rand.
@@ -331,9 +331,9 @@ function randmcmc(dpp::DeterminantalPointProcess, N::Int, k::Int;
     # initialize the Markov chain
     state = init_state
     if state == nothing
-        L_z_inv = Array{Float64}(size(dpp.L))
-        z = BitArray(dpp.size)  # TODO: improve initialization (?)
-        z[1:k] = true
+        L_z_inv = Array{Float64}(undef,size(dpp.L))
+        z = falses(dpp.size)  # TODO: improve initialization (?)
+        z[1:k] .= true
         if any(z)
             L_z_inv[z, z] = pinv(dpp.L[z, z])
         end
@@ -351,7 +351,7 @@ function randmcmc(dpp::DeterminantalPointProcess, N::Int, k::Int;
 
     Y = []
     for i in 1:N
-        push!(Y, find(state[1]))
+        push!(Y, findall(state[1]))
         for t in 1:steps_between_samples
             _do_mcmc_k_step!(dpp, state)
         end
