@@ -167,8 +167,8 @@ function _do_mcmc_step!(dpp::DeterminantalPointProcess, state::MCMCState)
         new_state = _update_mcmc_state(dpp, state, u, insert)
         p = _comp_accept_prob(dpp, new_state, u, insert)
         if rand(dpp.rng) < p
-            copy!(state[1], new_state[1])
-            copy!(state[2], new_state[2])
+            state[1] .= new_state[1]
+            state[2] .= new_state[2]
         end
     end
 end
@@ -189,8 +189,8 @@ function _do_mcmc_k_step!(dpp::DeterminantalPointProcess, state::MCMCState)
     if rand(dpp.rng) < p
         # insert the v element into the new state
         _update_mcmc_state!(dpp, new_state, v, true)
-        copy!(state[1], new_state[1])
-        copy!(state[2], new_state[2])
+        state[1] .= new_state[1]
+        state[2] .= new_state[2]
     end
 end
 
