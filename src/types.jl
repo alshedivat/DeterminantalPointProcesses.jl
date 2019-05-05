@@ -1,16 +1,16 @@
 # abstract types
-abstract PointProcess
+abstract type PointProcess end;
 
 
 # specific types
-type DeterminantalPointProcess <: PointProcess
+mutable struct DeterminantalPointProcess <: PointProcess
     L::Symmetric
     Lfact::Eigen
     size::Int
     rng::AbstractRNG
 
     function DeterminantalPointProcess(L::Symmetric; seed::Int=42)
-        Lfact = Base.LinAlg.eigfact(L)
+        Lfact = eigen(L)
         new(L, Lfact, length(Lfact.values), MersenneTwister(seed))
     end
 
@@ -21,12 +21,12 @@ type DeterminantalPointProcess <: PointProcess
 end
 
 
-type KroneckerDeterminantalPointProcess <: PointProcess
+mutable struct KroneckerDeterminantalPointProcess <: PointProcess
     # TODO
 end
 
 
 # aliases
-typealias DPP DeterminantalPointProcess
-typealias KDPP KroneckerDeterminantalPointProcess
-typealias MCMCState Tuple{BitArray{1}, Array{Float64, 2}}
+const DPP = DeterminantalPointProcess
+const KDPP = KroneckerDeterminantalPointProcess
+const MCMCState = Tuple{BitArray{1}, Array{Float64, 2}}
