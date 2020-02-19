@@ -1,8 +1,5 @@
 # DeterminantalPointProcesses
 
-[![Julia-0.4 Badge](http://pkg.julialang.org/badges/DeterminantalPointProcesses_0.4.svg)](http://pkg.julialang.org/?pkg=DeterminantalPointProcesses)
-[![Julia-0.5 Badge](http://pkg.julialang.org/badges/DeterminantalPointProcesses_0.5.svg)](http://pkg.julialang.org/?pkg=DeterminantalPointProcesses)
-[![Julia-0.6 Badge](http://pkg.julialang.org/badges/DeterminantalPointProcesses_0.6.svg)](http://pkg.julialang.org/?pkg=DeterminantalPointProcesses)
 [![Build Badge](https://travis-ci.org/alshedivat/DeterminantalPointProcesses.jl.svg)](https://travis-ci.org/alshedivat/DeterminantalPointProcesses.jl)
 [![Coverage Badge](https://coveralls.io/repos/github/alshedivat/DeterminantalPointProcesses.jl/badge.svg)](https://coveralls.io/github/alshedivat/DeterminantalPointProcesses.jl)
 
